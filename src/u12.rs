@@ -10,6 +10,14 @@
 use std::fmt::Debug;
 use std::marker;
 use std::num::{IntErrorKind, ParseIntError};
+use std::ops::AddAssign;
+use std::ops::BitAndAssign;
+use std::ops::BitOrAssign;
+use std::ops::BitXorAssign;
+use std::ops::DivAssign;
+use std::ops::MulAssign;
+use std::ops::RemAssign;
+use std::ops::SubAssign;
 use std::ops::{Add, BitAnd, BitOr, BitXor, Div, Mul, Not, Rem, Shl, Shr, Sub};
 use std::str::FromStr;
 
@@ -896,11 +904,57 @@ macro_rules! impl_arithmetic_trait_family_for_u12 {
     };
 }
 
+macro_rules! impl_arithmetic_assign_trait_family_for_u12 {
+    ($trait_name:ident, $trait_method:ident, $checked_method:ident, $message:expr) => {
+        // Implementation of U12 op= U12.
+        impl $trait_name for U12 {
+            fn $trait_method(&mut self, other: U12) {
+                *self = match self.$checked_method(other) {
+                    Some(result) => result,
+                    None => {
+                        panic!($message)
+                    }
+                }
+            }
+        }
+    };
+}
+
 impl_arithmetic_trait_family_for_u12!(Add, add, checked_add, "arithmetic overflow");
+impl_arithmetic_assign_trait_family_for_u12!(
+    AddAssign,
+    add_assign,
+    checked_add,
+    "arithmetic overflow"
+);
 impl_arithmetic_trait_family_for_u12!(Sub, sub, checked_sub, "arithmetic underflow");
+impl_arithmetic_assign_trait_family_for_u12!(
+    SubAssign,
+    sub_assign,
+    checked_sub,
+    "arithmetic underflow"
+);
 impl_arithmetic_trait_family_for_u12!(Mul, mul, checked_mul, "arithmetic overflow");
+impl_arithmetic_assign_trait_family_for_u12!(
+    MulAssign,
+    mul_assign,
+    checked_mul,
+    "arithmetic overflow"
+);
 impl_arithmetic_trait_family_for_u12!(Div, div, checked_div, "arithmetic exception");
+impl_arithmetic_assign_trait_family_for_u12!(
+    DivAssign,
+    div_assign,
+    checked_div,
+    "arithmetic exception"
+);
 impl_arithmetic_trait_family_for_u12!(Rem, rem, checked_rem, "arithmetic exception");
+impl_arithmetic_assign_trait_family_for_u12!(
+    RemAssign,
+    rem_assign,
+    checked_rem,
+    "arithmetic exception"
+);
 
 // MARK: - Not
 
@@ -931,9 +985,23 @@ macro_rules! impl_bitwise_trait_family_for_u12 {
     };
 }
 
+macro_rules! impl_bitwise_assign_trait_family_for_u12 {
+    ($trait_name:ident, $trait_method:ident, $checked_method:ident) => {
+        impl_arithmetic_assign_trait_family_for_u12!(
+            $trait_name,
+            $trait_method,
+            $checked_method,
+            "<unreachable>"
+        );
+    };
+}
+
 impl_bitwise_trait_family_for_u12!(BitAnd, bitand, checked_bitand);
+impl_bitwise_assign_trait_family_for_u12!(BitAndAssign, bitand_assign, checked_bitand);
 impl_bitwise_trait_family_for_u12!(BitOr, bitor, checked_bitor);
+impl_bitwise_assign_trait_family_for_u12!(BitOrAssign, bitor_assign, checked_bitand);
 impl_bitwise_trait_family_for_u12!(BitXor, bitxor, checked_bitxor);
+impl_bitwise_assign_trait_family_for_u12!(BitXorAssign, bitxor_assign, checked_bitand);
 
 // MARK: - Logic Operations
 
